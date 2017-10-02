@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-const Home = () => (
+const SignUp = () => (
   <div class="col-sm-6" id="signinDiv"> 
     <div id="signInMsg"></div>
       <h2>Sign In</h2>
@@ -24,4 +24,4 @@ const Home = () => (
   </div>
 );
 
-export default Home;
+export default SignUp;
