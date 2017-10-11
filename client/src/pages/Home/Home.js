@@ -1,27 +1,121 @@
 import React, { Component } from "react";
+import DeleteBtn from "../../components/DeleteBtn";
+import Jumbotron from "../../components/Jumbotron";
+import API from "../../utils/API";
+import { Link } from "react-router-dom";
+import { Col, Row, Container } from "../../components/Grid";
+import { List, ListItem } from "../../components/List";
+import { Input, TextArea, FormBtn } from "../../components/Form";
 
-const Home = () => (
-  <div class="col-sm-6" id="signinDiv"> 
-    <div id="signInMsg"></div>
-      <h2>Sign In</h2>
-      <form id="signinForm">
-          <div class="form-group">
-              <label for="email">Email address</label>
-              <input type="email" id="signInEmail" name="signInEmail" class="form-control" placeholder="Email address"  autofocus />
-          </div>
 
-          <div class="form-group">
-              <label for="inputPassword">Password</label>
-              <input type="password" id="signInPassword" name="signInPassword" class="form-control" placeholder="Password" />
-          </div>
+class Home extends Component {
+  state = {
+    user: [],
+    username: "",
+    email: "",
+    password: ""
+  };
 
-          <button class="btn btn-primary btn-block" type="submit">Sign in</button>
-      </form>
+  componentDidMount() {
+    this.loadUser();
+  }
 
-      <hr/>
-      <p>Don't have an account</p>
-      <a href="" class="btn btn-default btn-block" role="button" id="signupButton">Create your account</a>
-  </div>
-);
+  loadUser = () => {
+    API.getUsers()
+      .then(res =>
+        this.setState({ user: res.data, username: "", email: "", password: "" })
+      )
+      .catch(err => console.log(err));
+  };
 
+  deleteUser = id => {
+    API.deleteUser(id)
+      .then(res => this.loadUser())
+      .catch(err => console.log(err));
+  };
+
+  handleInputChange = event => {
+    const { name, value } = event.target;
+    this.setState({
+      [name]: value
+    });
+  };
+
+  handleFormSubmit = event => {
+    event.preventDefault();
+    if (this.state.username && this.state.email && this.state.password) {
+      API.saveUser({
+        username: this.state.username,
+        email: this.state.email,
+        password: this.state.password
+      })
+        .then(res => this.loadUser())
+        .catch(err => console.log(err));
+    }
+  };
+
+
+  render() {
+    return (
+      <Container fluid>
+      <Row>
+        <Col size="md-6">
+          <Jumbotron>
+            <h1>What Books Should I Read?</h1>
+          </Jumbotron>
+          <form>
+            <Input
+              value={this.state.email}
+              onChange={this.handleInputChange}
+              name="email"
+              placeholder="email (required)"
+            />
+            <Input
+              value={this.state.username}
+              onChange={this.handleInputChange}
+              name="username"
+              placeholder="username (required)"
+            />
+            <Input
+              value={this.state.password}
+              onChange={this.handleInputChange}
+              name="password"
+              placeholder="password (required)"
+            />
+    
+            <FormBtn
+              disabled={!(this.state.username && this.state.email)}
+              onClick={this.handleFormSubmit}
+            >
+              Submit Book
+            </FormBtn>
+          </form>
+        </Col>
+        <Col size="md-6">
+          <Jumbotron>
+            <h1>Books On My List</h1>
+          </Jumbotron>
+
+          {this.state.user.length ? (
+            <List>
+              {this.state.user.map(user => (
+                <ListItem key={user._id}>
+                  <Link to={"/user/" + user._id}>
+                    <strong>
+                      {user.email} by {user.username}
+                    </strong>
+                  </Link>
+                  <DeleteBtn onClick={() => this.deleteUser(user._id)} />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <h3>No Results to Display</h3>
+          )}
+        </Col>
+      </Row>
+    </Container>
+    );
+  }
+}
 export default Home;
