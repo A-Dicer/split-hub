@@ -6,21 +6,20 @@ module.exports = function(passport, user){
 
 	//Local strategy for username/password authentication
 	var LocalStrategy = require('passport-local').Strategy;
-
 	// In order to support login sessions, Passport will serialize and deserialize 
 	// user instances to and from the session.
 	// Here, the user ID is serialized to the session. 
 	// When subsequent requests are received, this ID is used to find the user
 	// which will be restored to req.user
 	passport.serializeUser(function(user, done){
-		done(null, user.id);
+		done(null, {_id: user.id, username: user.username});
 	});
 
 	// deserialize user
 	passport.deserializeUser(function(id, done) {
    	 	User.findById(id).then(function(user) {
 	        if (user) { 
-	            done(null, user.get());
+	            done(null, user);
 	        } else {
 	            done(user.errors, null);
 	        }
@@ -34,10 +33,12 @@ module.exports = function(passport, user){
 		{
 			usernameField: 'email',
 			passwordField: 'password',
-			passReqToCallback: true // aloows us to pass the entire request to the callback "done"
+			passReqToCallback: true // allows us to pass the entire request to the callback "done"
 		},
 
 		function(req, email, password, done){
+			console.log("signup");
+			
 			// The hashed password generating function
 			// Param password and return a hashed password
 			var generateHash = function(password){
@@ -45,12 +46,10 @@ module.exports = function(passport, user){
 			};
 
 			// Check if the emial already exist in the database
-			User.findOne({
-				where: {
-					email: email
-				}
-			}).then(function(user){
+			User.findOne({ email: email	})
+			.then(function(user){
 				if(user){
+					console.log("user already there")
 					// If email exist return a message
 					return done(null, false, "That email is already taken.");
 				} else {
@@ -60,7 +59,7 @@ module.exports = function(passport, user){
 					var data = {
 						email: email,
 						password: userPassword,
-						name: req.body.name,
+						username: req.body.username,
 					};
 					// Insert user in database
 					User.create(data).then(function(newUser, created){
@@ -85,19 +84,15 @@ module.exports = function(passport, user){
 		},
 
 		function(req, email, password, done){
-			var User = user;
-
+			console.log("logIn");
 			// Function to compare password entered with the one in database
 			var isValidPassword = function(userpass, password){
 				return bCrypt.compareSync(password, userpass);
 			}
 
 			// Check if the emial exist in the database
-			User.findOne({
-				where: {
-					email: email
-				}
-			}).then(function(user){
+			User.findOne({ email: email })
+			.then(function(user){
 
 				if(!user) {
 					// If user does not exist
@@ -108,12 +103,7 @@ module.exports = function(passport, user){
 					return done(null, false, "Incorrect password.");
 				}
 
-				// If the user exist and password is correst
-				// get user info
-				var userinfo = user.get();
-
-				// Return user info
-				return done(null, userinfo);
+				return done(null, user);
 			});
 		}
 

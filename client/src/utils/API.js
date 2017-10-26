@@ -1,20 +1,23 @@
 import axios from "axios";
 
 export default {
-  // Gets all users
   getUsers: function() {
-    return axios.get("/api/user");
+    return axios.get("/api/users/");
   },
-  // Gets the user with the given id
+
   getUser: function(id) {
-    return axios.get("/api/user/" + id);
+    return axios.get("/api/users/" + id);
   },
-  // Deletes the user with the given id
-  deleteUser: function(id) {
-    return axios.delete("/api/user/" + id);
+
+  register: function(user) {
+    return axios.post("/api/auth/register", user);
   },
-  // Saves a user to the database
-  saveUser: function(userData) {
-    return axios.post("/api/user", userData);
-  }
+  //login user
+  login: function(user) {
+    return axios.post("/api/auth/login", user);
+  },
+  //logout user
+  logout: function() {
+    return axios.get("/api/auth/logout");
+  },
 };
