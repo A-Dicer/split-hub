@@ -11,6 +11,7 @@ class Dash extends Component {
     this.loadUsers();
   }
 
+  
   loadUsers = () => {
     API.getUsers()
       .then(res => {
